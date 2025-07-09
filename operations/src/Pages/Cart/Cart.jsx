@@ -17,7 +17,7 @@ const Cart = () => {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    fetch('https://oa-backend-qdbq.onrender.com/api/food/categories')
+    fetch('http://localhost:2000/api/food/categories')
       .then((res) => res.json())
       .then((data) => setCategories(data.categories || []))
       .catch(() => toast.error('Failed to load categories'));
@@ -25,7 +25,7 @@ const Cart = () => {
 
   useEffect(() => {
     if (!selectedCategory) return;
-    fetch(`https://oa-backend-qdbq.onrender.com/api/food/shops/by-category?category=${selectedCategory}`)
+    fetch(`http://localhost:2000/api/food/shops/by-category?category=${selectedCategory}`)
       .then((res) => res.json())
       .then((data) => setShops(data.shops || []))
       .catch(() => toast.error('Failed to load shops'));
@@ -33,12 +33,9 @@ const Cart = () => {
 
   useEffect(() => {
     if (!selectedCategory || !selectedShop) return;
-
-    fetch(`https://oa-backend-qdbq.onrender.com/api/food/list?category=${selectedCategory}&shopId=${selectedShop}`)
+    fetch(`http://localhost:2000/api/food/list?category=${selectedCategory}&shopId=${selectedShop}`)
       .then((res) => res.json())
-      .then((data) => {
-        setFilteredFoodItems(data.foodItems || []);
-      })
+      .then((data) => setFilteredFoodItems(data.foodItems || []))
       .catch(() => toast.error('Failed to load food items'));
   }, [selectedCategory, selectedShop]);
 
@@ -49,7 +46,7 @@ const Cart = () => {
 
   const fetchProfile = async () => {
     try {
-      const res = await fetch(`https://oa-backend-qdbq.onrender.com/api/profile/${mobileNumber}`);
+      const res = await fetch(`http://localhost:2000/api/profile/${mobileNumber}`);
       const data = await res.json();
       if (res.ok) {
         setUserProfile(data);
@@ -67,7 +64,7 @@ const Cart = () => {
 
   const fetchCart = async () => {
     try {
-      const res = await fetch(`https://oa-backend-qdbq.onrender.com/api/cart/get`, {
+      const res = await fetch(`http://localhost:2000/api/cart/get`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ mobileOrEmail: mobileNumber }),
@@ -89,7 +86,7 @@ const Cart = () => {
     if (!userProfile) return toast.error('Load user profile first');
 
     try {
-      const res = await fetch(`https://oa-backend-qdbq.onrender.com/api/cart/add`, {
+      const res = await fetch(`http://localhost:2000/api/cart/add`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -116,7 +113,7 @@ const Cart = () => {
     if (isNaN(quantityNum) || quantityNum <= 0) return toast.error('Invalid quantity');
 
     try {
-      await fetch(`https://oa-backend-qdbq.onrender.com/api/cart/remove`, {
+      await fetch(`http://localhost:2000/api/cart/remove`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ mobileOrEmail: mobileNumber, productId: item.productId._id }),
@@ -130,7 +127,7 @@ const Cart = () => {
 
   const handleDeleteItem = async (item) => {
     try {
-      const res = await fetch(`https://oa-backend-qdbq.onrender.com/api/cart/remove`, {
+      const res = await fetch(`http://localhost:2000/api/cart/remove`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ mobileOrEmail: mobileNumber, productId: item.productId._id }),
@@ -155,7 +152,7 @@ const Cart = () => {
     const product = filteredFoodItems.find(i => i._id === selectedFoodItem);
     if (!product) return toast.error('Invalid product');
 
-    const quantityInGrams = selectedQuantity * product.quantity; // total grams = multiplier * unit quantity
+    const quantityInGrams = selectedQuantity * product.quantity;
     handleAddItemToCart(selectedFoodItem, quantityInGrams);
   };
 
@@ -163,8 +160,14 @@ const Cart = () => {
 
   return (
     <div className="credit-to-wallet-container">
-      <div className="credit-to-wallet-inner-container">
-        <div className="input-section left">
+  <div className="credit-to-wallet-inner-container"> 
+    
+    {/* Top Row - Flex container for left and right panels */}
+    <div className="top-row">
+      {/* Left Panel - Inputs and profile */}
+      <div className="left-panel">
+        <div className="input-section">
+          {/* Mobile number input */}
           <label htmlFor="mobile-number">Mobile Number</label>
           <input
             type="text"
@@ -186,7 +189,10 @@ const Cart = () => {
             <button onClick={fetchCart}>View Cart</button>
           </div>
         )}
+      </div>
 
+      {/* Middle Panel - Dropdown food selection */}
+      <div className="middle-panel">
         <div className="dropdown-selection">
           <h3>Add Food via Selection</h3>
 
@@ -235,28 +241,14 @@ const Cart = () => {
               {selectedProduct && (
                 <div className="dropdown-group">
                   <label>Quantity (Multiplier × {selectedProduct.quantity}g)</label>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    <input
-                      type="number"
-                      min="1"
-                      value={selectedQuantity}
-                      onChange={(e) => setSelectedQuantity(Number(e.target.value))}
-                      style={{
-                        width: '100px',
-                        padding: '8px',
-                        fontSize: '16px',
-                        border: '1px solid #ccc',
-                        borderRadius: '6px',
-                      }}
-                    />
-                    <small style={{ color: '#666' }}>
-                      (Available: {selectedProduct.quantity || 0}g per unit)
-                    </small>
-
-                    <div style={{ fontWeight: 'bold', fontSize: '16px', color: '#333' }}>
-                      ₹{selectedProduct.price * selectedQuantity}
-                    </div>
-                  </div>
+                  <input
+                    type="number"
+                    min="1"
+                    value={selectedQuantity}
+                    onChange={(e) => setSelectedQuantity(Number(e.target.value))}
+                  />
+                  <small>(Available: {selectedProduct.quantity || 0}g per unit)</small>
+                  <div><strong>Total: ₹{selectedProduct.price * selectedQuantity}</strong></div>
                 </div>
               )}
 
@@ -264,55 +256,61 @@ const Cart = () => {
             </>
           )}
         </div>
-
-        {cartItems.length > 0 && (
-          <div className="cart-table">
-            <h3>Cart Items</h3>
-            <table>
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Description</th>
-                  <th>Category</th>
-                  <th>Shop</th>
-                  <th>Total Qty</th>
-                  <th>Price</th>
-                  <th>Total</th>
-                  <th>Edit</th>
-                  <th>Remove</th>
-                </tr>
-              </thead>
-              <tbody>
-                {cartItems.map((item) => {
-                  const product = item.productId;
-                  const unitQty = product?.quantity || 1000;
-                  const unitPrice = product?.price || 0;
-                  const selectedQty = item.quantity || 0;
-                  const totalPrice = Math.round((selectedQty / unitQty) * unitPrice);
-
-                  return (
-                    <tr key={item._id}>
-                      <td>{product?.name}</td>
-                      <td>{product?.description}</td>
-                      <td>{product?.category}</td>
-                      <td>{product?.shopId?.name || 'N/A'}</td>
-                      <td>{selectedQty}g</td>
-                      <td>₹{unitPrice} (for {unitQty}g)</td>
-                      <td>₹{totalPrice}</td>
-                      <td><button onClick={() => handleEditItem(item)}>Edit</button></td>
-                      <td><button onClick={() => handleDeleteItem(item)}>Delete</button></td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
-
-        {error && <div className="error-message">{error}</div>}
       </div>
-      <ToastContainer />
     </div>
+
+    {/* Cart - Same as before */}
+    <div className="right-panel">
+      {cartItems.length > 0 && (
+        <div className="cart-table">
+          <h3>Cart Items</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Description</th>
+                <th>Category</th>
+                <th>Shop</th>
+                <th>Total Qty</th>
+                <th>Price</th>
+                <th>Total</th>
+                <th>Edit</th>
+                <th>Remove</th>
+              </tr>
+            </thead>
+            <tbody>
+              {cartItems.map((item) => {
+                const product = item.productId;
+                const unitQty = product?.quantity || 1000;
+                const unitPrice = product?.price || 0;
+                const selectedQty = item.quantity || 0;
+                const totalPrice = Math.round((selectedQty / unitQty) * unitPrice);
+
+                return (
+                  <tr key={item._id}>
+                    <td>{product?.name}</td>
+                    <td>{product?.description}</td>
+                    <td>{product?.category}</td>
+                    <td>{product?.shopId?.name || 'N/A'}</td>
+                    <td>{selectedQty}g</td>
+                    <td>₹{unitPrice} (for {unitQty}g)</td>
+                    <td>₹{totalPrice}</td>
+                    <td><button onClick={() => handleEditItem(item)}>Edit</button></td>
+                    <td><button onClick={() => handleDeleteItem(item)}>Delete</button></td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+
+    {error && <div className="error-message">{error}</div>}
+    <ToastContainer />
+  </div> 
+</div>
+
   );
 };
 
