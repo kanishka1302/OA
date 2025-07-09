@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import './Navbar.css';
 import { assets } from '../assets/assets';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../Pages/AuthContext/AuthContext';
 import OperationalBanner from './Operationalbanner';
 import Login from '../Pages/Login/Login';
@@ -10,11 +10,14 @@ const Navbar = () => {
   const { isLoggedIn, setIsLoggedIn } = useAuth();
   const location = useLocation();
   const [showLogin, setShowLogin] = useState(false);
+  const navigate = useNavigate();
+
 
   const handleLogout = () => {
     setIsLoggedIn(false);
   };
 
+  
   const handleLoginClick = () => {
     setShowLogin(true);
   };
@@ -36,7 +39,7 @@ const Navbar = () => {
         </div>
 
         <div className="navbar-links">
-          <p>NoVegrapix Operational Admin</p>
+          <p>NoVegRapix Operational Admin</p>
         </div>
 
         <div className="navbar-button">
@@ -56,9 +59,9 @@ const Navbar = () => {
           )}
         </div>
       </div>
+      
 
-      {/* Show banner only when login popup is NOT shown */}
-      {location.pathname === '/' && !showLogin && <OperationalBanner />}
+      
 
       {/* Render login popup overlay */}
       {showLogin && (
